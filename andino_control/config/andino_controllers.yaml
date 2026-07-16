@@ -19,10 +19,7 @@ diff_controller:
     wheel_radius: 0.035
     odom_frame_id: odom
     base_frame_id: base_link
-    # TEMPORARY MODE (no encoders): disable odometry TF output.
-    enable_odom_tf: false
-    # Use commanded velocities (open-loop) while wheel feedback is unavailable.
-    open_loop: true
+    enable_odom_tf: true
     use_stamped_vel: false
 
     linear.x.has_velocity_limits: false

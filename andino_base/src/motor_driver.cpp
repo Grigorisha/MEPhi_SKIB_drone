@@ -110,17 +110,9 @@ MotorDriver::Encoders MotorDriver::ReadEncoderValues() {
 }
 
 void MotorDriver::SetMotorValues(int val_1, int val_2) {
-  auto clamp_pwm = [](int value) -> int {
-    if (value > 255) return 255;
-    if (value < -255) return -255;
-    return value;
-  };
   std::stringstream ss;
-  // TEMPORARY MODE (manual drive without encoders):
-  // send direct PWM command instead of closed-loop ticks command.
-  ss << "o " << clamp_pwm(val_1) << " " << clamp_pwm(val_2);
-  // Firmware may not reply reliably; avoid blocking control loop.
-  SendMsgNoResponse(ss.str());
+  ss << "m " << val_1 << " " << val_2;
+  SendMsg(ss.str());
 }
 
 void MotorDriver::SetPidValues(float k_p, float k_d, float k_i, float k_o) {
@@ -147,15 +139,6 @@ std::string MotorDriver::SendMsg(const std::string& msg) {
     std::cerr << "Response to " << msg << " timed out." << std::endl;
   }
   return response;
-}
-
-void MotorDriver::SendMsgNoResponse(const std::string& msg) {
-  if (!serial_port_.IsOpen()) {
-    std::cerr << "Serial port is not open. Can't send message '" << msg << "'." << std::endl;
-    return;
-  }
-  const std::string msg_to_send = msg + '\r';
-  serial_port_.Write(msg_to_send);
 }
 
 }  // namespace andino_base

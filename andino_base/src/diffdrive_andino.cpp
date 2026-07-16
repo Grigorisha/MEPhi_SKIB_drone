@@ -143,19 +143,25 @@ hardware_interface::CallbackReturn DiffDriveAndino::on_deactivate(const rclcpp_l
 }
 
 hardware_interface::return_type DiffDriveAndino::read(const rclcpp::Time& /* time */, const rclcpp::Duration& period) {
-  (void)period;
+  const double delta_secs = period.seconds();
 
   if (!motor_driver_.is_connected()) {
     RCLCPP_ERROR(logger_, "Motor driver is not connected.");
     return hardware_interface::return_type::ERROR;
   }
 
-  // TEMPORARY MODE (no encoders):
-  // Do not poll encoder values from firmware to avoid UART timeouts.
-  // Keep wheel state interfaces static; write() still sends velocity commands to motors.
-  // Restore ReadEncoderValues()/Angle() logic when encoder wiring is available.
-  left_wheel_.vel_ = 0.0;
-  right_wheel_.vel_ = 0.0;
+  const MotorDriver::Encoders encoders = motor_driver_.ReadEncoderValues();
+
+  left_wheel_.enc_ = encoders[0];
+  right_wheel_.enc_ = encoders[1];
+
+  const double left_pos_prev = left_wheel_.pos_;
+  left_wheel_.pos_ = left_wheel_.Angle();
+  left_wheel_.vel_ = (left_wheel_.pos_ - left_pos_prev) / delta_secs;
+
+  const double right_pos_prev = right_wheel_.pos_;
+  right_wheel_.pos_ = right_wheel_.Angle();
+  right_wheel_.vel_ = (right_wheel_.pos_ - right_pos_prev) / delta_secs;
 
   return hardware_interface::return_type::OK;
 }
