@@ -36,8 +36,8 @@
 
 #include "andino_base/motor_driver.h"
 
-DEFINE_string(serial_port, "/dev/ttyUSB0", "Serial port");
-DEFINE_int32(baud_rate, 57600, "Baud rate");
+DEFINE_string(serial_port, "/dev/ttyUSB_MOTOR", "Serial port");
+DEFINE_int32(baud_rate, 115200, "Baud rate");
 DEFINE_int32(timeout_ms, 1000, "Timeout in milliseconds for receiving a response from the Microcontroller");
 
 DEFINE_string(msg, "e", "Motor driver message(default read encoders)");
@@ -49,7 +49,9 @@ namespace applications {
 std::string GetUsageMessage() {
   std::stringstream ss;
   ss << "CLI for easy test of the MotorDriver class" << std::endl << std::endl;
-  ss << "  motor_driver_demo --serial_port=/dev/ttyUSB0 --msg='e' " << std::endl << std::endl;
+  ss << "  motor_driver_demo --serial_port=/dev/ttyUSB_MOTOR --baud_rate=115200 --msg='e' "
+     << std::endl
+     << std::endl;
   ss << "  motor_driver_demo --msg='o 255 255' " << std::endl << std::endl;
   return ss.str();
 }

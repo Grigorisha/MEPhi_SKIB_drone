@@ -87,6 +87,10 @@ class MotorDriver {
   /// @returns The response from the motor driver.
   std::string SendMsg(const std::string& msg_to_send);
 
+  /// @brief Send a message to the motor driver without waiting for a response.
+  /// @param[in] msg_to_send Message to send to the motor driver.
+  void SendMsgNoResponse(const std::string& msg_to_send);
+
  private:
   // Underlying serial connection.
   LibSerial::SerialPort serial_port_;

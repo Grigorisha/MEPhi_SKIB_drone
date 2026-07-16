@@ -34,20 +34,57 @@
 #include <sstream>
 
 namespace andino_base {
+namespace {
+
+bool TryToLibSerialBaudRate(int32_t baud_rate, LibSerial::BaudRate& out_baud_rate) {
+  switch (baud_rate) {
+    case 9600:
+      out_baud_rate = LibSerial::BaudRate::BAUD_9600;
+      return true;
+    case 19200:
+      out_baud_rate = LibSerial::BaudRate::BAUD_19200;
+      return true;
+    case 38400:
+      out_baud_rate = LibSerial::BaudRate::BAUD_38400;
+      return true;
+    case 57600:
+      out_baud_rate = LibSerial::BaudRate::BAUD_57600;
+      return true;
+    case 115200:
+      out_baud_rate = LibSerial::BaudRate::BAUD_115200;
+      return true;
+    case 230400:
+      out_baud_rate = LibSerial::BaudRate::BAUD_230400;
+      return true;
+    default:
+      return false;
+  }
+}
+
+}  // namespace
 
 void MotorDriver::Setup(const std::string& serial_device, int32_t baud_rate, int32_t timeout_ms) {
   timeout_ms_ = timeout_ms;
   try {
     serial_port_.Open(serial_device);
   } catch (std::exception& e) {
-    std::cout << e.what() << std::endl;
+    std::cerr << "Failed to open serial port '" << serial_device << "': " << e.what() << std::endl;
+    return;
   }
-  // TODO: Use baud_rate from parameter.
-  if (baud_rate != 57600) {
-    std::cerr << "A baudrate different than 57600 is not supported yet." << std::endl;
+
+  if (!serial_port_.IsOpen()) {
+    std::cerr << "Serial port '" << serial_device << "' is not open." << std::endl;
+    return;
   }
+
+  LibSerial::BaudRate serial_baud_rate = LibSerial::BaudRate::BAUD_57600;
+  if (!TryToLibSerialBaudRate(baud_rate, serial_baud_rate)) {
+    std::cerr << "Unsupported baudrate " << baud_rate
+              << ", falling back to 57600." << std::endl;
+  }
+
   // Configure the serial port.
-  serial_port_.SetBaudRate(LibSerial::BaudRate::BAUD_57600);
+  serial_port_.SetBaudRate(serial_baud_rate);
   serial_port_.SetCharacterSize(LibSerial::CharacterSize::CHAR_SIZE_8);
   serial_port_.SetParity(LibSerial::Parity::PARITY_NONE);
   serial_port_.SetStopBits(LibSerial::StopBits::STOP_BITS_1);
@@ -73,9 +110,17 @@ MotorDriver::Encoders MotorDriver::ReadEncoderValues() {
 }
 
 void MotorDriver::SetMotorValues(int val_1, int val_2) {
+  auto clamp_pwm = [](int value) -> int {
+    if (value > 255) return 255;
+    if (value < -255) return -255;
+    return value;
+  };
   std::stringstream ss;
-  ss << "m " << val_1 << " " << val_2;
-  SendMsg(ss.str());
+  // TEMPORARY MODE (manual drive without encoders):
+  // send direct PWM command instead of closed-loop ticks command.
+  ss << "o " << clamp_pwm(val_1) << " " << clamp_pwm(val_2);
+  // Firmware may not reply reliably; avoid blocking control loop.
+  SendMsgNoResponse(ss.str());
 }
 
 void MotorDriver::SetPidValues(float k_p, float k_d, float k_i, float k_o) {
@@ -85,6 +130,10 @@ void MotorDriver::SetPidValues(float k_p, float k_d, float k_i, float k_o) {
 }
 
 std::string MotorDriver::SendMsg(const std::string& msg) {
+  if (!serial_port_.IsOpen()) {
+    std::cerr << "Serial port is not open. Can't send message '" << msg << "'." << std::endl;
+    return "";
+  }
   // Add carriage return to the message.
   const std::string msg_to_send = msg + '\r';
   // Send the message.
@@ -98,6 +147,15 @@ std::string MotorDriver::SendMsg(const std::string& msg) {
     std::cerr << "Response to " << msg << " timed out." << std::endl;
   }
   return response;
+}
+
+void MotorDriver::SendMsgNoResponse(const std::string& msg) {
+  if (!serial_port_.IsOpen()) {
+    std::cerr << "Serial port is not open. Can't send message '" << msg << "'." << std::endl;
+    return;
+  }
+  const std::string msg_to_send = msg + '\r';
+  serial_port_.Write(msg_to_send);
 }
 
 }  // namespace andino_base

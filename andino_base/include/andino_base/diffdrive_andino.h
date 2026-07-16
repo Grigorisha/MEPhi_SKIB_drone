@@ -85,8 +85,9 @@ class DiffDriveAndino : public hardware_interface::SystemInterface {
     // Encoder parameters.
     int enc_ticks_per_rev = 700;
     // Communication parameters.
-    std::string serial_device = "/dev/ttyUSB0";
-    int baud_rate = 57600;
+    // Prefer stable udev symlink names. Falls back to actual device path if needed.
+    std::string serial_device = "/dev/ttyUSB_MOTOR";
+    int baud_rate = 115200;
     int timeout = 1000;
   };
 

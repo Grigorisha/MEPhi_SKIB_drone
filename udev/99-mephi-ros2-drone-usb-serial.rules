@@ -1,0 +1,19 @@
+#
+# Stable USB-serial names for MEPhI_ROS2_drone on Raspberry Pi.
+#
+# Creates:
+#  - /dev/ttyUSB_LIDAR   for RPLIDAR USB-UART (CP210x)
+#  - /dev/ttyUSB_MOTOR   for motor controller (Arduino/ESP32)
+#  - /dev/ttyUSB_ARDUINO legacy alias of ttyUSB_MOTOR
+#
+# Install with:
+#   sudo install -m 0644 99-mephi-ros2-drone-usb-serial.rules /etc/udev/rules.d/
+#   sudo udevadm control --reload-rules
+#   sudo udevadm trigger
+# then replug devices.
+#
+
+SUBSYSTEM=="tty", KERNEL=="ttyUSB*", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", SYMLINK+="ttyUSB_LIDAR"
+SUBSYSTEM=="tty", KERNEL=="ttyUSB*", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", SYMLINK+="ttyUSB_MOTOR", SYMLINK+="ttyUSB_ARDUINO"
+SUBSYSTEM=="tty", KERNEL=="ttyACM*", ATTRS{idVendor}=="303a", ATTRS{idProduct}=="1001", SYMLINK+="ttyUSB_MOTOR", SYMLINK+="ttyUSB_ARDUINO"
+SUBSYSTEM=="tty", KERNEL=="ttyACM*", ATTRS{idVendor}=="303a", ATTRS{idProduct}=="0002", SYMLINK+="ttyUSB_MOTOR", SYMLINK+="ttyUSB_ARDUINO"

@@ -47,7 +47,7 @@ def generate_launch_description():
     # Declares launch arguments
     camera_arg = DeclareLaunchArgument(
             'include_camera',
-            default_value='True',
+            default_value='False',
             description='Indicates whether to include camera launch.')
     camera =  LaunchConfiguration('include_camera')
     rplidar_arg = DeclareLaunchArgument(
@@ -55,6 +55,11 @@ def generate_launch_description():
             default_value='True',
             description='Indicates whether to include rplidar launch.')
     rplidar =  LaunchConfiguration('include_rplidar')
+    rplidar_serial_port_arg = DeclareLaunchArgument(
+            'rplidar_serial_port',
+            default_value='/dev/ttyUSB_LIDAR',
+            description='Serial port for RPLIDAR (use udev symlink when possible).')
+    rplidar_serial_port = LaunchConfiguration('rplidar_serial_port')
 
     # Includes andino_description launch file
     include_andino_description = IncludeLaunchDescription(
@@ -81,7 +86,7 @@ def generate_launch_description():
             os.path.join(pkg_andino_bringup, 'launch', 'rplidar.launch.py'),
         ),
         launch_arguments={
-            "serial_port": '/dev/ttyUSB_LIDAR',
+            "serial_port": rplidar_serial_port,
         }.items(),
                 condition=IfCondition(rplidar)
     )
@@ -109,5 +114,6 @@ def generate_launch_description():
         camera_arg,
         camera_timer,
         rplidar_arg,
+        rplidar_serial_port_arg,
         rplidar_timer,
     ])

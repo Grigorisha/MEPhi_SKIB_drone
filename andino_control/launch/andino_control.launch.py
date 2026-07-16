@@ -58,7 +58,8 @@ def generate_launch_description():
             ('/diff_controller/cmd_vel', '/cmd_vel'), # Used if use_stamped_vel param is true
             ('/diff_controller/cmd_vel_unstamped', '/cmd_vel'), # Used if use_stamped_vel param is false
             ('/diff_controller/cmd_vel_out', '/cmd_vel_out'), # Used if publish_limited_velocity param is true
-            ('/diff_controller/odom', '/odom'),
+            # TEMPORARY MODE (no encoders): keep odom out of the standard /odom topic.
+            ('/diff_controller/odom', '/odom_disabled'),
         ],
         output="both",
     )

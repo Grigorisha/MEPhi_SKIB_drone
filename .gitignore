@@ -1,5 +1,7 @@
-*.build
-*.install
+# Colcon build artifacts
+build/
+install/
+log/
 
 # PlatformIO files
 .pio
@@ -9,3 +11,4 @@
 
 # PyCache
 *.pyc
+__pycache__/
