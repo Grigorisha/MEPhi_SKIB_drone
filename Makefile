@@ -10,7 +10,7 @@
 	deps deps-skip-classic rosdep-check \
 	ports udev-install udev-check \
 	esp-check \
-	bringup teleop-keyboard teleop-joystick \
+	bringup lidar-watchdog teleop-keyboard teleop-joystick \
 	up down attach status \
 	slam rviz \
 	nav nav-slam \
@@ -135,6 +135,12 @@ bringup:
 		source "$(ROS_SETUP)"; source "$(WS_SETUP)"; \
 		ros2 launch andino_bringup andino_robot.launch.py include_camera:="$(INCLUDE_CAMERA)" include_rplidar:="$(INCLUDE_RPLIDAR)" rplidar_serial_port:="$(LIDAR_PORT)"'
 
+## Наблюдатель за лидаром: автоматически переподключает USB и перезапускает
+## ноду, если /scan замолкает (нужен root — просит sudo). Запускать вместо
+## include_rplidar в bringup: make bringup INCLUDE_RPLIDAR=False + это отдельно.
+lidar-watchdog:
+	@sudo bash mephi_hw_tests/lidar_watchdog.sh
+
 ## Телеуправление с клавиатуры
 teleop-keyboard:
 	@bash -lc 'set -eo pipefail; \
@@ -249,6 +255,7 @@ help:
 	@echo "  make bringup              — запуск робота (железо)"
 	@echo "    LIDAR_PORT=/dev/ttyUSB_LIDAR (можно переопределить)"
 	@echo "    INCLUDE_CAMERA=True|False, INCLUDE_RPLIDAR=True|False"
+	@echo "  make lidar-watchdog        — лидар отдельно, с авто-переподключением при обрыве /scan (нужен sudo)"
 	@echo "  make up                   — поднять весь стек в tmux (bringup + keyboard teleop)"
 	@echo "  make attach               — подключиться к tmux-сессии стека"
 	@echo "  make status               — показать статус tmux-сессии стека"
