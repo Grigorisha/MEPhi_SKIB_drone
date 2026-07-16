@@ -33,7 +33,7 @@ INCLUDE_CAMERA ?= False
 INCLUDE_RPLIDAR ?= False
 STACK_SESSION ?= andino_stack
 ESP_PORT ?= /dev/ttyUSB_MOTOR
-ESP_BAUD ?= 115200
+ESP_BAUD ?= 57600
 
 UDEV_RULES_SRC ?= $(CURDIR)/udev/99-mephi-ros2-drone-usb-serial.rules
 UDEV_RULES_DST ?= /etc/udev/rules.d/99-mephi-ros2-drone-usb-serial.rules

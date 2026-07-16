@@ -50,7 +50,7 @@ def is_encoder_reply(line: str) -> bool:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Check UART replies from ESP motor controller.")
     parser.add_argument("--port", required=True, help="Serial port path (e.g. /dev/ttyUSB0)")
-    parser.add_argument("--baud", type=int, default=115200, help="UART baudrate")
+    parser.add_argument("--baud", type=int, default=57600, help="UART baudrate")
     args = parser.parse_args()
 
     print(f"[ESP] open {args.port} @ {args.baud}")
