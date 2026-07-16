@@ -179,7 +179,9 @@ hardware_interface::return_type DiffDriveAndino::write(const rclcpp::Time& /* ti
 
   const int left_value_target = static_cast<int>(left_wheel_.cmd_ / left_wheel_.rads_per_tick_);
   const int right_value_target = static_cast<int>(right_wheel_.cmd_ / right_wheel_.rads_per_tick_);
-  motor_driver_.SetMotorValues(left_value_target, right_value_target);
+  // Motors are wired with forward/backward polarity reversed relative to the firmware's
+  // convention, so commanded ticks/sec are negated here to match ROS's forward/backward sense.
+  motor_driver_.SetMotorValues(-left_value_target, -right_value_target);
 
   return hardware_interface::return_type::OK;
 }
