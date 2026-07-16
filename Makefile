@@ -32,7 +32,7 @@ LIDAR_PORT ?= /dev/ttyUSB_LIDAR
 INCLUDE_CAMERA ?= False
 INCLUDE_RPLIDAR ?= False
 STACK_SESSION ?= andino_stack
-ESP_PORT ?= /dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0
+ESP_PORT ?= /dev/ttyUSB_MOTOR
 ESP_BAUD ?= 115200
 
 UDEV_RULES_SRC ?= $(CURDIR)/udev/99-mephi-ros2-drone-usb-serial.rules
