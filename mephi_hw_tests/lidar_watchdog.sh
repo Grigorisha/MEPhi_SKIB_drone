@@ -22,6 +22,8 @@
 #   make bringup INCLUDE_RPLIDAR=False
 # =============================================================================
 
+export ROS_DOMAIN_ID="${ROS_DOMAIN_ID:-42}"
+
 RPLIDAR_PORT="${RPLIDAR_PORT:-/dev/ttyUSB_LIDAR}"
 RPLIDAR_BAUD="${RPLIDAR_BAUD:-115200}"
 FRAME_ID="${FRAME_ID:-rplidar_laser_link}"

@@ -21,6 +21,12 @@ ROS_DISTRO ?= humble
 ROS_SETUP  ?= /opt/ros/$(ROS_DISTRO)/setup.bash
 WS_SETUP   ?= $(CURDIR)/install/setup.bash
 
+# Явно, не полагаясь на .bashrc: цели вызываются и по SSH неинтерактивно,
+# и через sudo (который по умолчанию сбрасывает окружение) — в обоих случаях
+# .bashrc не подхватывается, а рассинхрон домена — самая частая причина
+# "ничего не видно" между роботом и студенческими ВМ.
+ROS_DOMAIN_ID ?= 42
+
 COLCON_ARGS ?= --event-handlers console_direct+ --symlink-install
 
 # На Raspberry Pi (jammy/arm64) classic gazebo deb-пакеты часто недоступны.
@@ -132,6 +138,7 @@ esp-check:
 bringup:
 	@bash -lc 'set -eo pipefail; \
 		if [ ! -f "$(WS_SETUP)" ]; then echo "Нет $(WS_SETUP). Сначала сделай: make build"; exit 1; fi; \
+		export ROS_DOMAIN_ID="$(ROS_DOMAIN_ID)"; \
 		source "$(ROS_SETUP)"; source "$(WS_SETUP)"; \
 		ros2 launch andino_bringup andino_robot.launch.py include_camera:="$(INCLUDE_CAMERA)" include_rplidar:="$(INCLUDE_RPLIDAR)" rplidar_serial_port:="$(LIDAR_PORT)"'
 
@@ -145,6 +152,7 @@ lidar-watchdog:
 teleop-keyboard:
 	@bash -lc 'set -eo pipefail; \
 		if [ ! -f "$(WS_SETUP)" ]; then echo "Нет $(WS_SETUP). Сначала сделай: make build"; exit 1; fi; \
+		export ROS_DOMAIN_ID="$(ROS_DOMAIN_ID)"; \
 		source "$(ROS_SETUP)"; source "$(WS_SETUP)"; \
 		ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r __node:=teleop_twist_keyboard_node'
 
@@ -152,6 +160,7 @@ teleop-keyboard:
 teleop-joystick:
 	@bash -lc 'set -eo pipefail; \
 		if [ ! -f "$(WS_SETUP)" ]; then echo "Нет $(WS_SETUP). Сначала сделай: make build"; exit 1; fi; \
+		export ROS_DOMAIN_ID="$(ROS_DOMAIN_ID)"; \
 		source "$(ROS_SETUP)"; source "$(WS_SETUP)"; \
 		ros2 launch andino_bringup teleop_joystick.launch.py'
 
@@ -165,8 +174,8 @@ up:
 		if tmux has-session -t "$(STACK_SESSION)" 2>/dev/null; then \
 		  echo "Сессия $(STACK_SESSION) уже запущена. Подключись: make attach"; exit 0; \
 		fi; \
-		tmux new-session -d -s "$(STACK_SESSION)" -n bringup "bash -lc '\''source \"$(ROS_SETUP)\"; source \"$(WS_SETUP)\"; ros2 launch andino_bringup andino_robot.launch.py include_camera:=\"$(INCLUDE_CAMERA)\" include_rplidar:=\"$(INCLUDE_RPLIDAR)\" rplidar_serial_port:=\"$(LIDAR_PORT)\"'\''"; \
-		tmux split-window -t "$(STACK_SESSION):bringup" -v "bash -lc '\''sleep 5; source \"$(ROS_SETUP)\"; source \"$(WS_SETUP)\"; ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r __node:=teleop_twist_keyboard_node'\''"; \
+		tmux new-session -d -s "$(STACK_SESSION)" -n bringup "bash -lc '\''export ROS_DOMAIN_ID=\"$(ROS_DOMAIN_ID)\"; source \"$(ROS_SETUP)\"; source \"$(WS_SETUP)\"; ros2 launch andino_bringup andino_robot.launch.py include_camera:=\"$(INCLUDE_CAMERA)\" include_rplidar:=\"$(INCLUDE_RPLIDAR)\" rplidar_serial_port:=\"$(LIDAR_PORT)\"'\''"; \
+		tmux split-window -t "$(STACK_SESSION):bringup" -v "bash -lc '\''sleep 5; export ROS_DOMAIN_ID=\"$(ROS_DOMAIN_ID)\"; source \"$(ROS_SETUP)\"; source \"$(WS_SETUP)\"; ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r __node:=teleop_twist_keyboard_node'\''"; \
 		tmux select-pane -t "$(STACK_SESSION):bringup.1"; \
 		echo "Стек поднят в tmux-сессии: $(STACK_SESSION)"; \
 		echo "Подключиться: make attach"; \
@@ -201,6 +210,7 @@ down:
 slam:
 	@bash -lc 'set -eo pipefail; \
 		if [ ! -f "$(WS_SETUP)" ]; then echo "Нет $(WS_SETUP). Сначала сделай: make build"; exit 1; fi; \
+		export ROS_DOMAIN_ID="$(ROS_DOMAIN_ID)"; \
 		source "$(ROS_SETUP)"; source "$(WS_SETUP)"; \
 		ros2 launch andino_slam slam_toolbox_online_async.launch.py'
 
@@ -208,6 +218,7 @@ slam:
 rviz:
 	@bash -lc 'set -eo pipefail; \
 		if [ ! -f "$(WS_SETUP)" ]; then echo "Нет $(WS_SETUP). Сначала сделай: make build"; exit 1; fi; \
+		export ROS_DOMAIN_ID="$(ROS_DOMAIN_ID)"; \
 		source "$(ROS_SETUP)"; source "$(WS_SETUP)"; \
 		ros2 launch andino_bringup rviz.launch.py'
 
@@ -215,6 +226,7 @@ rviz:
 nav:
 	@bash -lc 'set -eo pipefail; \
 		if [ ! -f "$(WS_SETUP)" ]; then echo "Нет $(WS_SETUP). Сначала сделай: make build"; exit 1; fi; \
+		export ROS_DOMAIN_ID="$(ROS_DOMAIN_ID)"; \
 		source "$(ROS_SETUP)"; source "$(WS_SETUP)"; \
 		ros2 launch andino_navigation bringup.launch.py map:="$(MAP)"'
 
@@ -222,6 +234,7 @@ nav:
 nav-slam:
 	@bash -lc 'set -eo pipefail; \
 		if [ ! -f "$(WS_SETUP)" ]; then echo "Нет $(WS_SETUP). Сначала сделай: make build"; exit 1; fi; \
+		export ROS_DOMAIN_ID="$(ROS_DOMAIN_ID)"; \
 		source "$(ROS_SETUP)"; source "$(WS_SETUP)"; \
 		ros2 launch andino_navigation bringup.launch.py slam:=True'
 
@@ -229,6 +242,7 @@ nav-slam:
 sim:
 	@bash -lc 'set -eo pipefail; \
 		if [ ! -f "$(WS_SETUP)" ]; then echo "Нет $(WS_SETUP). Сначала сделай: make build"; exit 1; fi; \
+		export ROS_DOMAIN_ID="$(ROS_DOMAIN_ID)"; \
 		source "$(ROS_SETUP)"; source "$(WS_SETUP)"; \
 		ros2 launch andino_apps andino_simulation_navigation.launch.py'
 
@@ -236,6 +250,7 @@ sim:
 sim-classic:
 	@bash -lc 'set -eo pipefail; \
 		if [ ! -f "$(WS_SETUP)" ]; then echo "Нет $(WS_SETUP). Сначала сделай: make build"; exit 1; fi; \
+		export ROS_DOMAIN_ID="$(ROS_DOMAIN_ID)"; \
 		source "$(ROS_SETUP)"; source "$(WS_SETUP)"; \
 		ros2 launch andino_gz_classic andino_one_robot.launch.py'
 
