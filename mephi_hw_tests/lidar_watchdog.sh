@@ -22,8 +22,6 @@
 #   make bringup INCLUDE_RPLIDAR=False
 # =============================================================================
 
-set -u
-
 RPLIDAR_PORT="${RPLIDAR_PORT:-/dev/ttyUSB_LIDAR}"
 RPLIDAR_BAUD="${RPLIDAR_BAUD:-115200}"
 FRAME_ID="${FRAME_ID:-rplidar_laser_link}"
