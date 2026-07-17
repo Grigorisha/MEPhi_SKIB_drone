@@ -149,10 +149,12 @@ bringup:
 		ros2 launch andino_bringup andino_robot.launch.py include_camera:="$(INCLUDE_CAMERA)" include_rplidar:="$(INCLUDE_RPLIDAR)" rplidar_serial_port:="$(LIDAR_PORT)"'
 
 ## Наблюдатель за лидаром: автоматически переподключает USB и перезапускает
-## ноду, если /scan замолкает (нужен root — просит sudo). Запускать вместо
-## include_rplidar в bringup: make bringup INCLUDE_RPLIDAR=False + это отдельно.
+## ноду, если /scan замолкает. Работает от pi (не root — иначе ломается
+## shared memory DDS); для usbreset нужно одноразовое sudoers-правило —
+## ставится через make service-install. Запускать вместо include_rplidar:
+## make bringup INCLUDE_RPLIDAR=False + это отдельно.
 lidar-watchdog:
-	@sudo bash mephi_hw_tests/lidar_watchdog.sh
+	@bash mephi_hw_tests/lidar_watchdog.sh
 
 ## Установить systemd-сервисы (bringup без лидара + lidar-watchdog отдельно)
 ## для автозапуска робота при включении Pi. Нужен sudo.
@@ -160,8 +162,9 @@ service-install:
 	@bash -lc 'set -eo pipefail; \
 		sudo install -m 0644 "$(CURDIR)/systemd/$(SERVICE_BRINGUP)" "$(SYSTEMD_DIR)/$(SERVICE_BRINGUP)"; \
 		sudo install -m 0644 "$(CURDIR)/systemd/$(SERVICE_LIDAR)" "$(SYSTEMD_DIR)/$(SERVICE_LIDAR)"; \
+		sudo install -m 0440 "$(CURDIR)/sudoers.d/mephi-usbreset" /etc/sudoers.d/mephi-usbreset; \
 		sudo systemctl daemon-reload; \
-		echo "Сервисы установлены ($(SERVICE_BRINGUP), $(SERVICE_LIDAR))."; \
+		echo "Сервисы установлены ($(SERVICE_BRINGUP), $(SERVICE_LIDAR)) + sudoers-правило для usbreset."; \
 		echo "Включить автозапуск и запустить сейчас: make service-enable"'
 
 ## Включить автозапуск при загрузке Pi и запустить сервисы прямо сейчас

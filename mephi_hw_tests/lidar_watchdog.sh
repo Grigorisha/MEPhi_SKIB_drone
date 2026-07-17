@@ -15,8 +15,11 @@
 #     лидара и перезапускает ноду;
 #   - как только данные снова пошли — просто молчит, нода продолжает висеть.
 #
-# Требует root (usbreset нужны права). Запускать:
-#   sudo bash mephi_hw_tests/lidar_watchdog.sh
+# Запускать от pi (НЕ от root — см. проверку ниже). Для usbreset нужно
+# одноразово установить sudoers-правило:
+#   sudo install -m 0440 sudoers.d/mephi-usbreset /etc/sudoers.d/mephi-usbreset
+# Затем:
+#   bash mephi_hw_tests/lidar_watchdog.sh
 #
 # Основной bringup (мотор/описание робота) поднимать отдельно, без лидара:
 #   make bringup INCLUDE_RPLIDAR=False
@@ -40,8 +43,19 @@ log() {
   echo "[$(date '+%H:%M:%S')] $*" | tee -a "$LOG_FILE"
 }
 
-if [ "$EUID" -ne 0 ]; then
-  echo "Нужен root (для usbreset). Запусти: sudo bash $0"
+# Работать нужно именно от pi, НЕ от root: Fast-DDS shared-memory транспорт
+# создаёт сегменты в /dev/shm с правами владельца (644) — root-процесс лидара
+# и pi-процессы остального стека друг друга не "слышат" на одной машине.
+# Root нужен только для usbreset — через sudoers-правило (sudoers.d/mephi-usbreset).
+if [ "$EUID" -eq 0 ]; then
+  echo "Не запускай от root — ломается shared memory между процессами DDS."
+  echo "Запусти от pi: bash $0 (usbreset получит root через sudoers-правило)"
+  exit 1
+fi
+
+if ! sudo -n /usr/bin/usbreset >/dev/null 2>&1; then
+  echo "Нет беспарольного sudo для usbreset. Установи правило:"
+  echo "  sudo install -m 0440 sudoers.d/mephi-usbreset /etc/sudoers.d/mephi-usbreset"
   exit 1
 fi
 
@@ -79,7 +93,7 @@ is_scan_alive() {
 recover() {
   log "ДАННЫХ НЕТ: /scan не публикуется. Программно переподключаю USB ($USB_ID) и перезапускаю ноду..."
   stop_rplidar
-  usbreset "$USB_ID" >> "$LOG_FILE" 2>&1
+  sudo -n /usr/bin/usbreset "$USB_ID" >> "$LOG_FILE" 2>&1
   sleep 3
   start_rplidar
   sleep 5

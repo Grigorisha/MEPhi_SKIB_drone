@@ -6,9 +6,12 @@ StartLimitIntervalSec=0
 
 [Service]
 Type=simple
-User=root
+# Именно pi, не root: Fast-DDS shared memory между процессами на одной машине
+# не работает через границу пользователей (сегменты в /dev/shm создаются 644).
+# usbreset получает root через /etc/sudoers.d/mephi-usbreset.
+User=pi
+Group=pi
 WorkingDirectory=/home/pi/MEPhi_SKIB_drone/MEPhI_ROS2_drone
-Environment=HOME=/home/pi
 ExecStart=/bin/bash /home/pi/MEPhi_SKIB_drone/MEPhI_ROS2_drone/mephi_hw_tests/lidar_watchdog.sh
 Restart=always
 RestartSec=5
