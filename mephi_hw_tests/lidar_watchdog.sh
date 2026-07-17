@@ -53,7 +53,7 @@ if [ "$EUID" -eq 0 ]; then
   exit 1
 fi
 
-if ! sudo -n /usr/bin/usbreset >/dev/null 2>&1; then
+if ! sudo -n -l /usr/bin/usbreset >/dev/null 2>&1; then
   echo "Нет беспарольного sudo для usbreset. Установи правило:"
   echo "  sudo install -m 0440 sudoers.d/mephi-usbreset /etc/sudoers.d/mephi-usbreset"
   exit 1
