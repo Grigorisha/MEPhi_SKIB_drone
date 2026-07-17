@@ -11,6 +11,8 @@
 	ports udev-install udev-check \
 	esp-check \
 	bringup lidar-watchdog teleop-keyboard teleop-joystick \
+	service-install service-enable service-disable \
+	service-start service-stop service-restart service-status service-logs \
 	up down attach status \
 	slam rviz \
 	nav nav-slam \
@@ -43,6 +45,10 @@ ESP_BAUD ?= 57600
 
 UDEV_RULES_SRC ?= $(CURDIR)/udev/99-mephi-ros2-drone-usb-serial.rules
 UDEV_RULES_DST ?= /etc/udev/rules.d/99-mephi-ros2-drone-usb-serial.rules
+
+SYSTEMD_DIR      ?= /etc/systemd/system
+SERVICE_BRINGUP  ?= mephi-bringup.service
+SERVICE_LIDAR    ?= mephi-lidar-watchdog.service
 
 ## Включить графический менеджер (gdm3)
 gui-on:
@@ -147,6 +153,44 @@ bringup:
 ## include_rplidar в bringup: make bringup INCLUDE_RPLIDAR=False + это отдельно.
 lidar-watchdog:
 	@sudo bash mephi_hw_tests/lidar_watchdog.sh
+
+## Установить systemd-сервисы (bringup без лидара + lidar-watchdog отдельно)
+## для автозапуска робота при включении Pi. Нужен sudo.
+service-install:
+	@bash -lc 'set -eo pipefail; \
+		sudo install -m 0644 "$(CURDIR)/systemd/$(SERVICE_BRINGUP)" "$(SYSTEMD_DIR)/$(SERVICE_BRINGUP)"; \
+		sudo install -m 0644 "$(CURDIR)/systemd/$(SERVICE_LIDAR)" "$(SYSTEMD_DIR)/$(SERVICE_LIDAR)"; \
+		sudo systemctl daemon-reload; \
+		echo "Сервисы установлены ($(SERVICE_BRINGUP), $(SERVICE_LIDAR))."; \
+		echo "Включить автозапуск и запустить сейчас: make service-enable"'
+
+## Включить автозапуск при загрузке Pi и запустить сервисы прямо сейчас
+service-enable:
+	@sudo systemctl enable --now $(SERVICE_BRINGUP) $(SERVICE_LIDAR)
+
+## Выключить автозапуск при загрузке и остановить сервисы прямо сейчас
+service-disable:
+	@sudo systemctl disable --now $(SERVICE_BRINGUP) $(SERVICE_LIDAR)
+
+## Запустить сервисы прямо сейчас, не трогая автозапуск
+service-start:
+	@sudo systemctl start $(SERVICE_BRINGUP) $(SERVICE_LIDAR)
+
+## Остановить сервисы прямо сейчас, не трогая автозапуск
+service-stop:
+	@sudo systemctl stop $(SERVICE_BRINGUP) $(SERVICE_LIDAR)
+
+## Перезапустить сервисы (например, после git pull с обновлениями)
+service-restart:
+	@sudo systemctl restart $(SERVICE_BRINGUP) $(SERVICE_LIDAR)
+
+## Показать статус сервисов
+service-status:
+	@systemctl status $(SERVICE_BRINGUP) $(SERVICE_LIDAR) --no-pager || true
+
+## Смотреть логи сервисов в реальном времени (Ctrl+C — выйти)
+service-logs:
+	@journalctl -u $(SERVICE_BRINGUP) -u $(SERVICE_LIDAR) -f
 
 ## Телеуправление с клавиатуры
 teleop-keyboard:
@@ -271,6 +315,13 @@ help:
 	@echo "    LIDAR_PORT=/dev/ttyUSB_LIDAR (можно переопределить)"
 	@echo "    INCLUDE_CAMERA=True|False, INCLUDE_RPLIDAR=True|False"
 	@echo "  make lidar-watchdog        — лидар отдельно, с авто-переподключением при обрыве /scan (нужен sudo)"
+	@echo ""
+	@echo "  make service-install       — поставить systemd-сервисы автозапуска (нужен sudo, один раз)"
+	@echo "  make service-enable        — включить автозапуск при загрузке Pi + запустить сейчас"
+	@echo "  make service-disable       — выключить автозапуск + остановить сейчас"
+	@echo "  make service-start/stop/restart — управление сервисами прямо сейчас"
+	@echo "  make service-status        — статус сервисов"
+	@echo "  make service-logs          — логи сервисов в реальном времени"
 	@echo "  make up                   — поднять весь стек в tmux (bringup + keyboard teleop)"
 	@echo "  make attach               — подключиться к tmux-сессии стека"
 	@echo "  make status               — показать статус tmux-сессии стека"

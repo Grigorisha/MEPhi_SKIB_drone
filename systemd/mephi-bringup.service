@@ -1,0 +1,17 @@
+[Unit]
+Description=MEPhI_ROS2_drone bringup (motor + description, lidar handled separately by mephi-lidar-watchdog.service)
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/MEPhi_SKIB_drone/MEPhI_ROS2_drone
+ExecStart=/usr/bin/make -C /home/pi/MEPhi_SKIB_drone/MEPhI_ROS2_drone bringup INCLUDE_RPLIDAR=False
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
