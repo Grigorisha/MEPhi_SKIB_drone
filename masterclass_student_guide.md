@@ -17,20 +17,20 @@
 
 **Терминал 1** — запускаем черепашку:
 ```bash
-source /opt/ros/humble/setup.bash
+source /opt/ros/humble/setup.zsh   # если уже подключена автоматически — можно пропустить
 ros2 run turtlesim turtlesim_node
 ```
 
 **Терминал 2** — рулим ей стрелками на клавиатуре:
 ```bash
-source /opt/ros/humble/setup.bash
+source /opt/ros/humble/setup.zsh   # если уже подключена автоматически — можно пропустить
 ros2 run turtlesim turtle_teleop_key
 ```
 (Кликни именно во второй терминал, чтобы стрелки ловились им, а не окном черепашки.)
 
 **Посмотреть, что происходит внутри** (третий терминал, пока черепашка ещё бегает):
 ```bash
-source /opt/ros/humble/setup.bash
+source /opt/ros/humble/setup.zsh   # если уже подключена автоматически — можно пропустить
 ros2 node list                 # какие ноды сейчас запущены
 ros2 topic list                # какие топики существуют
 ros2 topic echo /turtle1/cmd_vel   # смотрим сообщения вживую (жми стрелку во 2 терминале)
@@ -50,7 +50,7 @@ ros2 topic pub /turtle1/cmd_vel geometry_msgs/msg/Twist "{linear: {x: 2.0}, angu
 ssh pi@<IP_РОБОТА>
 # введи пароль (не будет отображаться на экране, пока печатаешь — это нормально)
 
-source /opt/ros/humble/setup.bash
+source /opt/ros/humble/setup.bash   # на роботе обычный bash, не zsh — если уже подключена автоматически, можно пропустить
 export ROS_DOMAIN_ID=42
 
 ros2 topic list
@@ -76,7 +76,7 @@ ros2 topic echo /joint_states --once
 ssh pi@<IP_РОБОТА>
 # введи пароль
 
-source /opt/ros/humble/setup.bash
+source /opt/ros/humble/setup.bash   # на роботе обычный bash
 export ROS_DOMAIN_ID=42
 ros2 run teleop_twist_keyboard teleop_twist_keyboard
 ```
@@ -104,7 +104,7 @@ ros2 run teleop_twist_keyboard teleop_twist_keyboard
 ssh -X pi@<IP_РОБОТА>
 # введи пароль
 
-source /opt/ros/humble/setup.bash
+source /opt/ros/humble/setup.bash   # на роботе обычный bash
 export ROS_DOMAIN_ID=42
 rviz2
 ```
