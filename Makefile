@@ -9,6 +9,7 @@
 	build clean \
 	deps deps-skip-classic rosdep-check \
 	ports udev-install udev-check \
+	net-check net-allow net-clean \
 	esp-check \
 	bringup lidar-watchdog teleop-keyboard teleop-joystick \
 	service-install service-enable service-disable \
@@ -141,6 +142,15 @@ esp-check:
 		python3 mephi_hw_tests/esp_uart_check.py --port "$(ESP_PORT)" --baud "$(ESP_BAUD)"'
 
 ## Запуск робота (железо): description + control + (опционально) lidar/camera
+net-check:
+	@bash -lc 'ROS_DOMAIN_ID="$(ROS_DOMAIN_ID)" bash "$(CURDIR)/mephi_hw_tests/ros2_net_setup.sh" check'
+
+net-allow:
+	@bash -lc 'ROS_DOMAIN_ID="$(ROS_DOMAIN_ID)" bash "$(CURDIR)/mephi_hw_tests/ros2_net_setup.sh" allow'
+
+net-clean:
+	@bash -lc 'ROS_DOMAIN_ID="$(ROS_DOMAIN_ID)" bash "$(CURDIR)/mephi_hw_tests/ros2_net_setup.sh" clean'
+
 bringup:
 	@bash -lc 'set -eo pipefail; \
 		if [ ! -f "$(WS_SETUP)" ]; then echo "Нет $(WS_SETUP). Сначала сделай: make build"; exit 1; fi; \
