@@ -90,7 +90,12 @@ cmd_check() {
   if command -v ros2 >/dev/null 2>&1; then
     export ROS_DOMAIN_ID
     local n
-    n="$(timeout 12 ros2 node list 2>/dev/null | grep -c . || echo 0)"
+    # grep -c сам печатает 0, когда совпадений нет, но возвращает код 1.
+    # Здесь нужен именно "|| true": с "|| echo 0" в переменную попадёт
+    # ДВА нуля ("0\n0"), и сравнение упадёт с integer expression expected —
+    # ровно в той ситуации, ради которой эта проверка и написана.
+    n="$(timeout 12 ros2 node list 2>/dev/null | grep -c . || true)"
+    n="${n:-0}"
     if [ "$n" -gt 0 ]; then ok "Видно нод: $n"; else warn "Ноды не видны даже локально — робот не запущен"; fi
   else
     warn "ros2 не найден — нет /opt/ros/humble?"
