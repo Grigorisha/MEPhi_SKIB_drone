@@ -100,6 +100,22 @@ def generate_launch_description():
                 condition=IfCondition(camera)
     )
 
+    # Мультиплексор команд скорости.
+    #
+    # Разводит источники по приоритетам (джойстик 30 > клавиатура 20 >
+    # навигация 10) и отдаёт победителя в /cmd_vel — тему, которую слушает
+    # diff_controller. Без него источники перебивают друг друга, и оператор
+    # не может перехватить управление у навигации.
+    twist_mux_config = os.path.join(pkg_andino_bringup, 'config', 'twist_mux.yaml')
+    twist_mux_node = Node(
+            package='twist_mux',
+            executable='twist_mux',
+            name='twist_mux',
+            output='screen',
+            parameters=[twist_mux_config],
+            remappings=[('/cmd_vel_out', '/cmd_vel')],
+        )
+
     # TODO(francocipollone): Improve concatenation of launch files.
     #
     # Waits for andino_description to set up robot_state_publisher.
@@ -111,6 +127,7 @@ def generate_launch_description():
     return LaunchDescription([
         include_andino_description,
         andino_control_timer,
+        twist_mux_node,
         camera_arg,
         camera_timer,
         rplidar_arg,

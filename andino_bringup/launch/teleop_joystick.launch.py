@@ -42,7 +42,9 @@ def generate_launch_description():
 
     cmd_vel_topic_arg = DeclareLaunchArgument(
             'cmd_vel_topic',
-            default_value='/cmd_vel',
+            # Через twist_mux: джойстик имеет наивысший приоритет 30 —
+            # человек всегда перебивает навигацию.
+            default_value='/cmd_vel_joy',
             description='Indicates the cmd_vel topic.')
     cmd_vel_topic =  LaunchConfiguration('cmd_vel_topic')
 

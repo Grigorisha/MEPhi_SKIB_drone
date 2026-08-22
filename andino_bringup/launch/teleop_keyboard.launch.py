@@ -38,6 +38,8 @@ def generate_launch_description():
             name='teleop_twist_keyboard_node',
             output='screen',
             prefix = 'xterm -e',
+            # Через twist_mux: клавиатура имеет приоритет 20, ниже джойстика.
+            remappings=[('/cmd_vel', '/cmd_vel_keyboard')],
          )
 
     return LaunchDescription([
