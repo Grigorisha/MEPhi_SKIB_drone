@@ -70,6 +70,11 @@ class MotorDriver {
   /// @param val_2 Value for the second motor.
   void SetMotorValues(int val_1, int val_2);
 
+  /// @brief Sets the raw motors PWM, bypassing the firmware PID ("o" command).
+  /// @param val_1 Left motor PWM [-255, 255].
+  /// @param val_2 Right motor PWM [-255, 255].
+  void SetMotorPwm(int val_1, int val_2);
+
   /// @brief Set the PID values.
   /// @param k_p Proportional gain.
   /// @param k_d Derivative gain.

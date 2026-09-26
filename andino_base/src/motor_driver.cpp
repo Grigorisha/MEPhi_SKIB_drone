@@ -115,6 +115,12 @@ void MotorDriver::SetMotorValues(int val_1, int val_2) {
   SendMsg(ss.str());
 }
 
+void MotorDriver::SetMotorPwm(int val_1, int val_2) {
+  std::stringstream ss;
+  ss << "o " << val_1 << " " << val_2;
+  SendMsg(ss.str());
+}
+
 void MotorDriver::SetPidValues(float k_p, float k_d, float k_i, float k_o) {
   std::stringstream ss;
   ss << "u " << k_p << ":" << k_d << ":" << k_i << ":" << k_o;
@@ -129,6 +135,9 @@ std::string MotorDriver::SendMsg(const std::string& msg) {
   // Add carriage return to the message.
   const std::string msg_to_send = msg + '\r';
   // Send the message.
+  // Drop anything left in the input buffer: a reply that arrived after a timeout would
+  // otherwise be read as the reply to this message and shift every later reply by one.
+  serial_port_.FlushInputBuffer();
   serial_port_.Write(msg_to_send);
 
   // Get response from the motor driver.

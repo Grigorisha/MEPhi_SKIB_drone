@@ -2,5 +2,5 @@ left_wheel_name: left_wheel_joint
 right_wheel_name: right_wheel_joint
 serial_device: /dev/ttyUSB_MOTOR
 baud_rate: 57600
-timeout: 1000
+timeout: 100
 enc_ticks_per_rev: 585

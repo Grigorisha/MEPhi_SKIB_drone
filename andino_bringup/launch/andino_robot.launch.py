@@ -60,6 +60,11 @@ def generate_launch_description():
             default_value='/dev/ttyUSB_LIDAR',
             description='Serial port for RPLIDAR (use udev symlink when possible).')
     rplidar_serial_port = LaunchConfiguration('rplidar_serial_port')
+    joystick_arg = DeclareLaunchArgument(
+            'include_joystick',
+            default_value='True',
+            description='Indicates whether to include the gamepad teleop.')
+    joystick = LaunchConfiguration('include_joystick')
 
     # Includes andino_description launch file
     include_andino_description = IncludeLaunchDescription(
@@ -106,6 +111,15 @@ def generate_launch_description():
     # навигация 10) и отдаёт победителя в /cmd_vel — тему, которую слушает
     # diff_controller. Без него источники перебивают друг друга, и оператор
     # не может перехватить управление у навигации.
+    # Геймпад. joy_linux сам ждёт /dev/input/js0 и переоткрывает его, когда пульт
+    # переподключается, — пульт можно выключать и включать, не трогая остальной стек.
+    include_joystick = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(pkg_andino_bringup, 'launch', 'teleop_joystick.launch.py'),
+        ),
+        condition=IfCondition(joystick),
+    )
+
     twist_mux_config = os.path.join(pkg_andino_bringup, 'config', 'twist_mux.yaml')
     twist_mux_node = Node(
             package='twist_mux',
@@ -128,6 +142,8 @@ def generate_launch_description():
         include_andino_description,
         andino_control_timer,
         twist_mux_node,
+        joystick_arg,
+        include_joystick,
         camera_arg,
         camera_timer,
         rplidar_arg,

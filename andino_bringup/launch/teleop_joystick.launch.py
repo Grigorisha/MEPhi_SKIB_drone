@@ -52,6 +52,9 @@ def generate_launch_description():
             package='joy_linux',
             executable='joy_linux_node',
             parameters=[joystick_config],
+            # Упадёт — поднимется снова, не трогая остальной стек.
+            respawn=True,
+            respawn_delay=2.0,
          )
 
     teleop_node = Node(
@@ -59,7 +62,9 @@ def generate_launch_description():
             executable='teleop_node',
             name='teleop_node',
             parameters=[joystick_config],
-            remappings=[('/cmd_vel', cmd_vel_topic)]
+            remappings=[('/cmd_vel', cmd_vel_topic)],
+            respawn=True,
+            respawn_delay=2.0,
          )
 
     return LaunchDescription([

@@ -1,0 +1,11 @@
+# Управление сервисом робота без пароля.
+# flash_arduino.sh должен остановить mephi-bringup (он держит порт Arduino),
+# а после правок в коде стек нужно перезапускать — не вводя пароль каждый раз.
+# Ставится setup_demo_system.sh.
+Cmnd_Alias MEPHI_BRINGUP = /usr/bin/systemctl start mephi-bringup, \
+                           /usr/bin/systemctl stop mephi-bringup, \
+                           /usr/bin/systemctl restart mephi-bringup, \
+                           /usr/bin/systemctl start mephi-bringup.service, \
+                           /usr/bin/systemctl stop mephi-bringup.service, \
+                           /usr/bin/systemctl restart mephi-bringup.service
+pi ALL=(root) NOPASSWD: MEPHI_BRINGUP

@@ -1,27 +1,29 @@
-joy_linux_node:
+# Геймпад Xbox по Bluetooth. Управление как в World of Tanks Blitz — всё на
+# левом стике: вверх/вниз — вперёд/назад, влево/вправо — поворот.
+#
+# Пульт сопрягается один раз (mephi_hw_tests/pair_gamepad.sh) и дальше
+# подключается сам при включении кнопкой Xbox.
+
+joy_node:          # так на самом деле называется нода joy_linux_node
   ros__parameters:
-    device_id: 0
-    deadzone: 0.05
+    dev: /dev/input/js0
+    deadzone: 0.12
     autorepeat_rate: 20.0
 
 teleop_node:
   ros__parameters:
+    # Без кнопки удержания: едем, пока отклонён стик; отпустили — стоп.
+    # Для «мёртвой руки» поставить true — тогда ехать только с зажатой LB.
+    require_enable_button: false
+    enable_button: 4
+    enable_turbo_button: -1
+
     axis_linear:
-      x: 1
+      x: 1          # левый стик вверх/вниз
     scale_linear:
-      x: 0.5
-    scale_linear_turbo:
-      x: 1.0
+      x: 0.5        # стик в упор = полный ШИМ (kFullSpeed в diffdrive_andino.cpp)
 
     axis_angular:
-      yaw: 3
+      yaw: 0        # левый стик влево/вправо
     scale_angular:
-      yaw: 1.0
-    scale_angular_turbo:
-      yaw: 2.0
-
-
-    enable_button: 4
-    enable_turbo_button: 5
-
-    require_enable_button: true
+      yaw: 6.5      # стик вбок в упор = разворот на месте на полном ШИМ
