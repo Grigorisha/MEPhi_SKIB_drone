@@ -1,0 +1,12 @@
+[Unit]
+Description=MEPhI: хранитель Bluetooth-геймпада (вызывает пульт, если он не на связи)
+After=bluetooth.service hciuart.service
+Wants=bluetooth.service
+
+[Service]
+ExecStart=/usr/local/bin/gamepad-keeper.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
