@@ -29,32 +29,10 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "andino_base/diffdrive_andino.h"
 
-#include <algorithm>
-#include <cmath>
-
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
 #include <pluginlib/class_list_macros.hpp>
 
 namespace andino_base {
-
-namespace {
-
-// Open-loop drive, see write(). Full joystick deflection asks the wheels for kFullSpeed
-// (0.5 m/s at wheel_radius 0.035 m); kPwmStart is where the heavy tracks overcome friction.
-constexpr double kFullSpeed = 14.3;  // rad/s
-constexpr int kPwmStart = 70;
-constexpr int kPwmMax = 255;
-
-int VelocityToPwm(double wheel_speed) {
-  if (std::abs(wheel_speed) < 1e-3) {
-    return 0;
-  }
-  const double fraction = std::min(std::abs(wheel_speed) / kFullSpeed, 1.0);
-  const int pwm = kPwmStart + static_cast<int>(fraction * (kPwmMax - kPwmStart));
-  return wheel_speed > 0 ? pwm : -pwm;
-}
-
-}  // namespace
 
 
 hardware_interface::CallbackReturn DiffDriveAndino::on_init(const hardware_interface::HardwareInfo& info) {
@@ -176,8 +154,7 @@ hardware_interface::return_type DiffDriveAndino::read(const rclcpp::Time& /* tim
   const MotorDriver::Encoders encoders = motor_driver_.ReadEncoderValues();
 
   left_wheel_.enc_ = encoders[0];
-  // With the firmware currently flashed the right encoder counts backward (see write()).
-  right_wheel_.enc_ = -encoders[1];
+  right_wheel_.enc_ = encoders[1];
 
   const double left_pos_prev = left_wheel_.pos_;
   left_wheel_.pos_ = left_wheel_.Angle();
@@ -197,13 +174,14 @@ hardware_interface::return_type DiffDriveAndino::write(const rclcpp::Time& /* ti
     return hardware_interface::return_type::ERROR;
   }
 
-  // OPEN-LOOP PWM for now. The firmware speed PID ("m" command) can't be used with the firmware
-  // currently flashed: on the left side the encoder counts opposite to the motor, so any non-zero
-  // speed runs that PID away to full throttle. The fix (andino_firmware/src/hw.h) is in the repo
-  // but not flashed yet, so we send raw PWM ("o") and bypass the firmware PID entirely.
-  // With that firmware a positive PWM drives a track backward, hence the negation.
-  // After flashing the fixed firmware: back to SetMotorValues() in ticks/s, without negation.
-  motor_driver_.SetMotorPwm(-VelocityToPwm(left_wheel_.cmd_), -VelocityToPwm(right_wheel_.cmd_));
+  // The command is in rad/sec (rps), we need to convert it to ticks/sec (tps)
+  // Using the rads per tick(rpt) of the motor information
+  // Formula: ticks/sec = rads/sec / rads/tick
+  const int left_value_target = static_cast<int>(left_wheel_.cmd_ / left_wheel_.rads_per_tick_);
+  const int right_value_target = static_cast<int>(right_wheel_.cmd_ / right_wheel_.rads_per_tick_);
+  // Signs are reconciled in the firmware (andino_firmware/src/hw.h): a positive command and a
+  // growing encoder count both mean "forward" on each side, so no negation here.
+  motor_driver_.SetMotorValues(left_value_target, right_value_target);
 
   return hardware_interface::return_type::OK;
 }
