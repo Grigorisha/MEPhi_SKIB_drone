@@ -4,6 +4,8 @@
 
 *Данный проект является форком проекта [Andino](https://github.com/Ekumen-OS/andino), ПО, конструкция и электрическая схема которого были доработаны под наши требования.
 
+> Как устроен и как обслуживается текущий робот (Vindicator2) — [`GUIDE.md`](./GUIDE.md). Известные неисправности и их лечение — [`TROUBLESHOOTING.md`](./TROUBLESHOOTING.md).
+
 <p align="center">
   <img src="MEPhI_ROS2_drone.jpg" width=700 />
 </p>
